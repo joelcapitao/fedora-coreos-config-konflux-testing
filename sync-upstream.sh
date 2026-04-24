@@ -29,7 +29,7 @@ SCRIPT_NAME="sync-upstream.sh"
 DEFAULT_BRANCHES=("testing-devel" "rawhide")
 
 # Files/directories to preserve during sync (not overwritten by upstream)
-PRESERVE_PATHS=(".tekton" ".github")
+PRESERVE_PATHS=(".tekton" ".github" "README.md")
 
 # Colors for output
 RED='\033[0;31m'
