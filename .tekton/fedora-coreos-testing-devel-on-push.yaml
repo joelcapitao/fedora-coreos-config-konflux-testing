@@ -1,20 +1,19 @@
 apiVersion: tekton.dev/v1
 kind: PipelineRun
 metadata:
-  name: fedora-coreos-next-devel-on-pull-request-overrides
-  namespace: coreos-tenant
+  name: fedora-coreos-testing-devel-on-push
+  namespace: jcapitao-redhat-com-tenant
   labels:
-    appstudio.openshift.io/application: fedora-coreos-next-devel
-    appstudio.openshift.io/component: fedora-coreos-next-devel
+    appstudio.openshift.io/application: fedora-coreos-testing-devel
+    appstudio.openshift.io/component: fedora-coreos-testing-devel-ostree
     pipelines.appstudio.openshift.io/type: build
   annotations:
-    build.appstudio.openshift.io/repo: https://github.com/coreos/fedora-coreos-config?rev={{revision}}
-    build.appstudio.redhat.com/cancel-in-progress: "true"
+    build.appstudio.openshift.io/repo: https://github.com/joelcapitao/fedora-coreos-config-konflux-testing?rev={{revision}}
+    build.appstudio.redhat.com/cancel-in-progress: "false"
     build.appstudio.redhat.com/commit_sha: '{{revision}}'
-    build.appstudio.redhat.com/pull_request_number: '{{pull_request_number}}'
     build.appstudio.redhat.com/target_branch: '{{target_branch}}'
     pipelinesascode.tekton.dev/max-keep-runs: "3"
-    pipelinesascode.tekton.dev/on-cel-expression: event == "pull_request" && "manifest-lock.overrides*".pathChanged() && target_branch == "next-devel"
+    pipelinesascode.tekton.dev/on-cel-expression: event == "push" && !(files.all.all(f, f.matches("ci/buildroot/") || f.matches(".tekton/fcos-buildroot/"))) && target_branch == "testing-devel"
   creationTimestamp: null
 spec:
   params:
@@ -23,7 +22,7 @@ spec:
   - name: revision
     value: '{{revision}}'
   - name: output-image
-    value: quay.io/konflux-fedora/coreos-tenant/fedora-coreos-{{target_branch}}:on-pr-{{revision}}
+    value: quay.io/redhat-user-workloads/jcapitao-redhat-com-tenant/fedora-coreos-{{target_branch}}-ostree:{{revision}}
   - name: dockerfile
     value: Containerfile
   - name: path-context
@@ -37,17 +36,15 @@ spec:
   - name: build-platforms
     value:
     - linux/amd64
-    - linux/arm64
-    - linux/s390x
-    - linux/ppc64le
+    #- linux/arm64
+    #- linux/s390x
+    #- linux/ppc64le
   - name: clone-depth
     value: 50
   - name: hermetic
-    value: true
+    value: false
   - name: prefetch-input
     value: '[{"type": "rpm", "path": "."}]'
-  - name: image-expires-after
-    value: 5d
   pipelineRef:
     params:
     - name: bundle
@@ -58,4 +55,4 @@ spec:
       value: pipeline
     resolver: bundles
   taskRunTemplate:
-    serviceAccountName: build-pipeline-fedora-coreos-next-devel
+    serviceAccountName: build-pipeline-fedora-coreos-testing-devel-ostree

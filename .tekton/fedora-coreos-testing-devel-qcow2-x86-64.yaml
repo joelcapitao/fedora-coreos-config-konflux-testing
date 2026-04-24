@@ -1,0 +1,66 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  name: fedora-coreos-testing-devel-qcow2-x86-64
+  namespace: jcapitao-redhat-com-tenant
+  labels:
+    appstudio.openshift.io/application: fedora-coreos-testing-devel
+    appstudio.openshift.io/component: fedora-coreos-testing-devel-qcow2-x86-64
+    pipelines.appstudio.openshift.io/type: build
+  annotations:
+    build.appstudio.openshift.io/repo: https://github.com/joelcapitao/fedora-coreos-config-konflux-testing?rev={{revision}}
+    build.appstudio.redhat.com/cancel-in-progress: "false"
+    build.appstudio.redhat.com/commit_sha: '{{revision}}'
+    build.appstudio.redhat.com/target_branch: '{{target_branch}}'
+    pipelinesascode.tekton.dev/max-keep-runs: "3"
+    pipelinesascode.tekton.dev/on-cel-expression: event == "push" && !(files.all.all(f, f.matches("ci/buildroot/") || f.matches(".tekton/fcos-buildroot/"))) && target_branch == "testing-devel"
+spec:
+  timeouts:
+    pipeline: "6h0m0s"
+    tasks: "4h0m0s"
+    finally: "1h0m0s"
+  params:
+  - name: git-url
+    value: "{{source_url}}"
+  - name: revision
+    value: "{{revision}}"
+  - name: output-image
+    value: quay.io/redhat-user-workloads/jcapitao-redhat-com-tenant/fedora-coreos-{{target_branch}}-qcow2-x86-64:{{revision}}
+  - name: image-expires-after
+    value: 5d
+  - name: path-context
+    value: .
+  - name: image-type
+    value: qcow2
+  - name: config-toml
+    value: config/config-cuda-qcow2.toml
+  - name: bib-file
+    value: bib-cuda.yaml
+  - name: build-platforms
+    value:
+    - linux/amd64
+  pipelineRef:
+    params:
+    - name: org
+      value: redhat
+    - name: repo
+      value: rhel-ai/konflux-data
+    - name: scmType
+      value: gitlab
+    - name: serverURL
+      value: https://gitlab.com
+    - name: revision
+      value: main
+    - name: pathInRepo
+      value: pipelines/disk-image.yaml
+    - name: token
+      value: pipelines-as-code-secret
+    - name: tokenKey
+      value: password
+    resolver: git
+  taskRunTemplate:
+    serviceAccountName: build-fedora-coreos-testing-devel-qcow2-x86-64
+  workspaces:
+  - name: git-auth
+    secret:
+      secretName: "{{ git_auth_secret }}"
