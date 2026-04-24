@@ -13,7 +13,7 @@
 #   ./sync-upstream.sh <branch>            # Sync a specific branch
 #   ./sync-upstream.sh --list              # List available branches
 #
-# Configured branches: testing-devel, next-devel, rawhide
+# Configured branches: testing-devel, rawhide
 
 set -euo pipefail
 
@@ -26,7 +26,7 @@ SCRIPT_SOURCE_BRANCH="testing-devel"
 SCRIPT_NAME="sync-upstream.sh"
 
 # Branches to sync (can be overridden via command line)
-DEFAULT_BRANCHES=("testing-devel" "next-devel" "rawhide")
+DEFAULT_BRANCHES=("testing-devel" "rawhide")
 
 # Files/directories to preserve during sync (not overwritten by upstream)
 PRESERVE_PATHS=(".tekton" ".github")
